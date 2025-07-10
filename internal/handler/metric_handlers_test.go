@@ -168,6 +168,8 @@ func TestGetMetricHandler(t *testing.T) {
 				t.Fatalf("status = %d, want %d", resp.StatusCode, tt.wantStatus)
 			}
 
+			defer resp.Body.Close()
+
 			if tt.wantStatus != http.StatusOK {
 				return
 			}

@@ -81,7 +81,7 @@ func GetMetricHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		w.Write(fmt.Appendf(nil, "%f", gauge.Value))
+		w.Write(fmt.Appendf(nil, "%.3f", gauge.Value))
 
 	default:
 		http.Error(w, "unknown metric type", http.StatusBadRequest)

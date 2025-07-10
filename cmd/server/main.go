@@ -5,12 +5,9 @@ import (
 	"net/http"
 
 	"github.com/JinFuuMugen/ya_metrics_2025/internal/handler"
-	"github.com/JinFuuMugen/ya_metrics_2025/internal/storage"
 )
 
 func main() {
-
-	storage.InitStorage()
 
 	mux := http.NewServeMux()
 

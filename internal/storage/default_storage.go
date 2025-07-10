@@ -1,26 +1,32 @@
 package storage
 
+import "errors"
+
 const MetricTypeCounter = "counter"
 const MetricTypeGauge = "gauge"
 
-type (
-	Gauge struct {
-		Name  string
-		Type  string
-		Value float64
-	}
+type MemStorage struct {
+	GaugeMap   map[string]float64
+	CounterMap map[string]int64
+}
 
-	Counter struct {
-		Name  string
-		Type  string
-		Value int64
+func (ms *MemStorage) GetCounter(k string) (Counter, error) {
+	c, exists := ms.CounterMap[k]
+	if exists {
+		return Counter{Name: k, Type: MetricTypeCounter, Value: c}, nil
+	} else {
+		return Counter{}, errors.New("missing key")
 	}
+}
 
-	MemStorage struct {
-		GaugeMap   map[string]float64
-		CounterMap map[string]int64
+func (ms *MemStorage) GetGauge(k string) (Gauge, error) {
+	g, exists := ms.GaugeMap[k]
+	if exists {
+		return Gauge{Name: k, Type: MetricTypeGauge, Value: g}, nil
+	} else {
+		return Gauge{}, errors.New("missing key")
 	}
-)
+}
 
 func (ms *MemStorage) GetCounters() []Counter {
 

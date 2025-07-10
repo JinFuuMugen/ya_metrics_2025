@@ -1,9 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"time"
 
+	"github.com/JinFuuMugen/ya_metrics_2025/internal/agent/monitor"
+	"github.com/JinFuuMugen/ya_metrics_2025/internal/agent/sender"
 	"github.com/JinFuuMugen/ya_metrics_2025/internal/storage"
 )
 
@@ -15,17 +16,21 @@ func main() {
 	pollTicker := time.NewTicker(pollInterval)
 	reportTicker := time.NewTicker(reportInterval)
 
-	storage.InitStorage()
+	str := storage.NewStorage()
+	snd := sender.NewSender()
+
+	m := monitor.NewRuntimeMonitor(str, snd)
 
 	for {
 		select {
 		case <-pollTicker.C:
-			//do polling
-			fmt.Println("poll")
+			m.CollectRuntimeMetrics()
 
 		case <-reportTicker.C:
-			//do reporting
-			fmt.Println("report")
+			err := m.Dump()
+			if err != nil {
+				panic(err)
+			}
 		}
 	}
 }

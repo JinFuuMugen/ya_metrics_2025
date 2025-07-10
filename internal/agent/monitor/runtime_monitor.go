@@ -78,5 +78,5 @@ func (m *runtimeMonitor) collectRuntime() {
 
 func (m *runtimeMonitor) collectRuntimeSystem() {
 	m.Storage.SetGauge("RandomValue", 1000*rand.Float64())
-	m.Storage.AddCounter("PollCount", 27)
+	m.Storage.AddCounter("PollCount", GaugesAmount)
 }

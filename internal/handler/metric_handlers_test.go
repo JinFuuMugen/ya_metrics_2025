@@ -1,8 +1,10 @@
 package handler
 
 import (
+	"io"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 
 	"github.com/JinFuuMugen/ya_metrics_2025/internal/storage"
@@ -86,6 +88,104 @@ func TestUpdateMetricHandler(t *testing.T) {
 					t.Errorf("counter = %v, want %v", got, tt.wantGauge)
 				}
 			}
+		})
+	}
+}
+
+func TestGetMetricHandler(t *testing.T) {
+	tests := []struct {
+		name        string
+		method      string
+		url         string
+		pathVals    map[string]string
+		wantStatus  int
+		wantGauge   float64
+		wantCounter int64
+	}{
+		{
+			name:       "valid gauge",
+			method:     http.MethodGet,
+			url:        "/value/gauge/valid_gauge",
+			pathVals:   map[string]string{"metric_name": "valid_gauge", "metric_type": "gauge"},
+			wantGauge:  100.100,
+			wantStatus: http.StatusOK,
+		},
+		{
+			name:        "valid counter",
+			method:      http.MethodGet,
+			url:         "/value/counter/valid_counter",
+			pathVals:    map[string]string{"metric_name": "valid_counter", "metric_type": "counter"},
+			wantCounter: 100,
+			wantStatus:  http.StatusOK,
+		},
+		{
+			name:       "wrong method",
+			method:     http.MethodPost,
+			url:        "/value/counter/valid_counter",
+			pathVals:   map[string]string{"metric_name": "valid_counter", "metric_type": "counter"},
+			wantStatus: http.StatusMethodNotAllowed,
+		},
+		{
+			name:       "wrong type",
+			method:     http.MethodGet,
+			url:        "/value/abnormos/qwer",
+			pathVals:   map[string]string{"metric_name": "qwer", "metric_type": "abnormos"},
+			wantStatus: http.StatusBadRequest,
+		},
+		{
+			name:       "not found gauge",
+			method:     http.MethodGet,
+			url:        "/value/gauge/qwer",
+			pathVals:   map[string]string{"metric_name": "qwer", "metric_type": "gauge"},
+			wantStatus: http.StatusNotFound,
+		},
+		{
+			name:       "not found counter",
+			method:     http.MethodGet,
+			url:        "/value/counter/qwer",
+			pathVals:   map[string]string{"metric_name": "qwer", "metric_type": "counter"},
+			wantStatus: http.StatusNotFound,
+		},
+	}
+
+	storage.AddCounter("valid_counter", 100)
+	storage.SetGauge("valid_gauge", 100.100)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			r := httptest.NewRequest(tt.method, tt.url, nil)
+			for k, v := range tt.pathVals {
+				r.SetPathValue(k, v)
+			}
+
+			w := httptest.NewRecorder()
+
+			GetMetricHandler(w, r)
+
+			resp := w.Result()
+			if resp.StatusCode != tt.wantStatus {
+				t.Fatalf("status = %d, want %d", resp.StatusCode, tt.wantStatus)
+			}
+
+			if tt.wantStatus != http.StatusOK {
+				return
+			}
+
+			body, _ := io.ReadAll(resp.Body)
+			switch tt.pathVals["metric_type"] {
+			case storage.MetricTypeGauge:
+				got, _ := strconv.ParseFloat(string(body), 64)
+				if got != tt.wantGauge {
+					t.Fatalf("gauge value = %v, want %v", got, tt.wantGauge)
+				}
+			case storage.MetricTypeCounter:
+				got, _ := strconv.ParseInt(string(body), 10, 64)
+				if got != tt.wantCounter {
+					t.Fatalf("counter value = %v, want %v", got, tt.wantCounter)
+				}
+			}
+
 		})
 	}
 }

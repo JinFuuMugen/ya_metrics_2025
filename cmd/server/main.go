@@ -4,11 +4,14 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/JinFuuMugen/ya_metrics_2025/internal/config"
 	"github.com/JinFuuMugen/ya_metrics_2025/internal/handler"
 	"github.com/go-chi/chi/v5"
 )
 
 func main() {
+
+	cfg := config.InitConfig()
 
 	rout := chi.NewRouter()
 
@@ -16,7 +19,7 @@ func main() {
 	rout.Get("/value/{metric_type}/{metric_name}", handler.GetMetricHandler)
 	rout.Get("/", handler.InfoPageHandler)
 
-	err := http.ListenAndServe(":8080", rout)
+	err := http.ListenAndServe(cfg.Addr, rout)
 	if err != nil {
 		panic(fmt.Errorf("cannot start server: %w", err))
 	}

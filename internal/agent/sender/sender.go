@@ -16,15 +16,15 @@ type values struct {
 	client *http.Client
 }
 
-func NewSender() *values {
-	return &values{"http://localhost:8080", &http.Client{}} //make dynamical
+func NewSender(serverAddr string) *values {
+	return &values{serverAddr, &http.Client{}}
 }
 
 func (v *values) Process(counters []storage.Counter, gauges []storage.Gauge) error {
 
 	for _, c := range counters {
 
-		url := fmt.Sprintf("%s/update/%s/%s/%s", v.addr, c.GetType(), c.GetName(), c.GetValueString())
+		url := fmt.Sprintf("http://%s/update/%s/%s/%s", v.addr, c.GetType(), c.GetName(), c.GetValueString())
 
 		resp, err := v.client.Post(url, "text/plain", nil)
 		if err != nil {
@@ -37,7 +37,7 @@ func (v *values) Process(counters []storage.Counter, gauges []storage.Gauge) err
 
 	for _, g := range gauges {
 
-		url := fmt.Sprintf("%s/update/%s/%s/%s", v.addr, g.GetType(), g.GetName(), g.GetValueString())
+		url := fmt.Sprintf("http://%s/update/%s/%s/%s", v.addr, g.GetType(), g.GetName(), g.GetValueString())
 
 		resp, err := v.client.Post(url, "text/plain", nil)
 		if err != nil {

@@ -6,9 +6,11 @@ type ServerConfig struct {
 	Addr string
 }
 
-func InitConfig() *ServerConfig {
+func InitServerConfig() *ServerConfig {
 
-	addr := flag.String("Server address", "localhost:8080", "Metrics server address")
+	addr := flag.String("a", "localhost:8080", "Metrics server address")
+
+	flag.Parse()
 
 	return &ServerConfig{Addr: *addr}
 }

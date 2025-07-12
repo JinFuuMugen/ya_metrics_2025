@@ -5,19 +5,19 @@ import (
 
 	"github.com/JinFuuMugen/ya_metrics_2025/internal/agent/monitor"
 	"github.com/JinFuuMugen/ya_metrics_2025/internal/agent/sender"
+	"github.com/JinFuuMugen/ya_metrics_2025/internal/config"
 	"github.com/JinFuuMugen/ya_metrics_2025/internal/storage"
 )
 
 func main() {
 
-	pollInterval := 2 * time.Second
-	reportInterval := 10 * time.Second
+	cfg := config.InitAgentConfig()
 
-	pollTicker := time.NewTicker(pollInterval)
-	reportTicker := time.NewTicker(reportInterval)
+	pollTicker := time.NewTicker(time.Duration(cfg.PollInterval) * time.Second)
+	reportTicker := time.NewTicker(time.Duration(cfg.ReportInerval) * time.Second)
 
 	str := storage.NewStorage()
-	snd := sender.NewSender()
+	snd := sender.NewSender(cfg.Addr)
 
 	m := monitor.NewRuntimeMonitor(str, snd)
 

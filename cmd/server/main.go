@@ -11,7 +11,7 @@ import (
 
 func main() {
 
-	cfg := config.InitConfig()
+	cfg := config.InitServerConfig()
 
 	rout := chi.NewRouter()
 

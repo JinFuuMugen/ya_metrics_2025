@@ -14,8 +14,3 @@ type RuntimeMonitor interface {
 	Monitor
 	CollectRuntimeMetrics()
 }
-
-type GopsutilMonitor interface {
-	Monitor
-	CollectGopsutil()
-}

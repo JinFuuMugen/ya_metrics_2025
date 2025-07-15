@@ -10,7 +10,6 @@ import (
 )
 
 type Monitor interface {
-	Collect()
 	Dump() error
 }
 
@@ -26,10 +25,6 @@ type runtimeMonitor struct {
 
 func NewRuntimeMonitor(s storage.Storage, p sender.Sender) *runtimeMonitor {
 	return &runtimeMonitor{Storage: s, Processor: p}
-}
-
-func (m *runtimeMonitor) Collect() {
-	m.CollectRuntimeMetrics()
 }
 
 func (m *runtimeMonitor) CollectRuntimeMetrics() {

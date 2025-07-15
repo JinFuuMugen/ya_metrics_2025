@@ -72,28 +72,33 @@ func TestUpdateMetricHandler(t *testing.T) {
 			UpdateMetricHandler(w, r)
 
 			if w.Code != tt.wantStatus {
-				t.Fatalf("status = %d, want %d", w.Code, tt.wantStatus)
+				t.Errorf("status = %d, want %d", w.Code, tt.wantStatus)
+				return
 			}
 
 			if tt.wantGauge != 0 {
 				got, err := storage.GetGauge("GaugeMetr")
 				if err != nil {
-					t.Fatalf("error getting gauge value: %s", err)
+					t.Errorf("error getting gauge value: %s", err)
+					return
 				}
 
 				if got.GetValue() != tt.wantGauge {
-					t.Fatalf("gauge = %v, want %v", got.GetValue(), tt.wantGauge)
+					t.Errorf("gauge = %v, want %v", got.GetValue(), tt.wantGauge)
+					return
 				}
 			}
 
 			if tt.wantCounter != 0 {
 				got, err := storage.GetCounter("CounterMetr")
 				if err != nil {
-					t.Fatalf("error getting counter value: %s", err)
+					t.Errorf("error getting counter value: %s", err)
+					return
 				}
 
 				if got.GetValue() != tt.wantCounter {
-					t.Fatalf("counter = %v, want %v", got, tt.wantGauge)
+					t.Errorf("counter = %v, want %v", got, tt.wantGauge)
+					return
 				}
 			}
 		})
@@ -173,7 +178,8 @@ func TestGetMetricHandler(t *testing.T) {
 
 			resp := w.Result()
 			if resp.StatusCode != tt.wantStatus {
-				t.Fatalf("status = %d, want %d", resp.StatusCode, tt.wantStatus)
+				t.Errorf("status = %d, want %d", resp.StatusCode, tt.wantStatus)
+				return
 			}
 
 			defer resp.Body.Close()
@@ -187,13 +193,15 @@ func TestGetMetricHandler(t *testing.T) {
 			case storage.MetricTypeGauge:
 				got, _ := strconv.ParseFloat(string(body), 64)
 				if got != tt.wantGauge {
-					t.Fatalf("gauge value = %v, want %v", got, tt.wantGauge)
+					t.Errorf("gauge value = %v, want %v", got, tt.wantGauge)
+					return
 				}
 
 			case storage.MetricTypeCounter:
 				got, _ := strconv.ParseInt(string(body), 10, 64)
 				if got != tt.wantCounter {
-					t.Fatalf("counter value = %v, want %v", got, tt.wantCounter)
+					t.Errorf("counter value = %v, want %v", got, tt.wantCounter)
+					return
 				}
 			}
 

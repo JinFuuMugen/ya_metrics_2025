@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"fmt"
 	"html/template"
+	"log"
 	"net/http"
 
 	"github.com/JinFuuMugen/ya_metrics_2025/internal/storage"
@@ -58,7 +58,7 @@ func InfoPageHandler(w http.ResponseWriter, r *http.Request) {
 
 	data := PageData{Counters: counters, Gauges: gauges}
 	if err := tmpl.Execute(w, data); err != nil {
-		fmt.Printf("unable to parse info page: %s", err) //change to log in future
+		log.Printf("unable to parse info page: %s", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}

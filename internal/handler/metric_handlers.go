@@ -71,7 +71,7 @@ func GetMetricHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		w.Write(fmt.Appendf(nil, "%d", counter.Value))
+		w.Write([]byte(counter.GetValueString()))
 
 	case storage.MetricTypeGauge:
 		gauge, err := storage.GetGauge(metricName)
@@ -81,7 +81,7 @@ func GetMetricHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		w.Write(fmt.Appendf(nil, "%g", gauge.Value))
+		w.Write([]byte(gauge.GetValueString()))
 
 	default:
 		http.Error(w, "unknown metric type", http.StatusBadRequest)

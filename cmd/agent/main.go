@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/JinFuuMugen/ya_metrics_2025/internal/agent/monitor"
@@ -29,7 +30,7 @@ func main() {
 		case <-reportTicker.C:
 			err := m.Dump()
 			if err != nil {
-				panic(err)
+				fmt.Printf("cannot dump metrics: %s\n", err) //change to log in future
 			}
 		}
 	}

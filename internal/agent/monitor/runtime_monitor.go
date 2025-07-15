@@ -9,14 +9,22 @@ import (
 	"github.com/JinFuuMugen/ya_metrics_2025/internal/storage"
 )
 
-const GaugesAmount = 27
+type Monitor interface {
+	Collect()
+	Dump() error
+}
+
+type RuntimeMonitor interface {
+	Monitor
+	CollectRuntimeMetrics()
+}
 
 type runtimeMonitor struct {
 	Storage   storage.Storage
 	Processor sender.Sender
 }
 
-func NewRuntimeMonitor(s storage.Storage, p sender.Sender) RuntimeMonitor {
+func NewRuntimeMonitor(s storage.Storage, p sender.Sender) *runtimeMonitor {
 	return &runtimeMonitor{Storage: s, Processor: p}
 }
 
@@ -36,11 +44,10 @@ func (m *runtimeMonitor) Dump() error {
 	if err != nil {
 		return fmt.Errorf("error dumping metric: %w", err)
 	}
-	return nil
-}
 
-func (m *runtimeMonitor) SetProcessor(p sender.Sender) {
-	m.Processor = p
+	m.Storage.ResetCounters()
+
+	return nil
 }
 
 func (m *runtimeMonitor) collectRuntime() {
@@ -78,5 +85,5 @@ func (m *runtimeMonitor) collectRuntime() {
 
 func (m *runtimeMonitor) collectRuntimeSystem() {
 	m.Storage.SetGauge("RandomValue", 1000*rand.Float64())
-	m.Storage.AddCounter("PollCount", GaugesAmount)
+	m.Storage.AddCounter("PollCount", 1)
 }

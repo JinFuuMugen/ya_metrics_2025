@@ -72,20 +72,28 @@ func TestUpdateMetricHandler(t *testing.T) {
 			UpdateMetricHandler(w, r)
 
 			if w.Code != tt.wantStatus {
-				t.Errorf("status = %d, want %d", w.Code, tt.wantStatus)
+				t.Fatalf("status = %d, want %d", w.Code, tt.wantStatus)
 			}
 
 			if tt.wantGauge != 0 {
 				got, err := storage.GetGauge("GaugeMetr")
-				if got.GetValue() == 0 || got.GetValue() != tt.wantGauge || err != nil {
-					t.Errorf("gauge = %v, want %v", got.GetValue(), tt.wantGauge)
+				if err != nil {
+					t.Fatalf("error getting gauge value: %s", err)
+				}
+
+				if got.GetValue() != tt.wantGauge {
+					t.Fatalf("gauge = %v, want %v", got.GetValue(), tt.wantGauge)
 				}
 			}
 
 			if tt.wantCounter != 0 {
 				got, err := storage.GetCounter("CounterMetr")
-				if got == got.GetValue() || got.GetValue() != tt.wantCounter || err != nil {
-					t.Errorf("counter = %v, want %v", got, tt.wantGauge)
+				if err != nil {
+					t.Fatalf("error getting counter value: %s", err)
+				}
+
+				if got.GetValue() != tt.wantCounter {
+					t.Fatalf("counter = %v, want %v", got, tt.wantGauge)
 				}
 			}
 		})
@@ -181,6 +189,7 @@ func TestGetMetricHandler(t *testing.T) {
 				if got != tt.wantGauge {
 					t.Fatalf("gauge value = %v, want %v", got, tt.wantGauge)
 				}
+
 			case storage.MetricTypeCounter:
 				got, _ := strconv.ParseInt(string(body), 10, 64)
 				if got != tt.wantCounter {

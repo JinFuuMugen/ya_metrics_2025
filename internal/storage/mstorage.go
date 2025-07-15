@@ -1,9 +1,7 @@
 package storage
 
 import (
-	"fmt"
 	"strconv"
-	"strings"
 )
 
 type (
@@ -21,6 +19,7 @@ type (
 		GetGauges() []Gauge
 		GetCounter(string) (Counter, error)
 		GetGauge(string) (Gauge, error)
+		ResetCounters()
 	}
 
 	Counter struct {
@@ -64,14 +63,10 @@ func (g Gauge) GetValue() interface{} {
 }
 
 func (g Gauge) GetValueString() string {
-	f := func(num float64) string {
-		s := fmt.Sprintf(`%.4f`, num)
-		return strings.TrimRight(strings.TrimRight(s, `0`), `.`)
-	}
-	return f(g.Value)
+	return strconv.FormatFloat(g.Value, 'f', -1, 64)
 }
 
-func NewStorage() Storage {
+func NewStorage() *MemStorage {
 	return &MemStorage{
 		GaugeMap:   make(map[string]float64),
 		CounterMap: make(map[string]int64),

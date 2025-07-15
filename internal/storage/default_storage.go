@@ -1,6 +1,8 @@
 package storage
 
-import "errors"
+import (
+	"fmt"
+)
 
 const MetricTypeCounter = "counter"
 const MetricTypeGauge = "gauge"
@@ -11,20 +13,20 @@ type MemStorage struct {
 }
 
 func (ms *MemStorage) GetCounter(k string) (Counter, error) {
-	c, exists := ms.CounterMap[k]
-	if exists {
+	c, ok := ms.CounterMap[k]
+	if ok {
 		return Counter{Name: k, Type: MetricTypeCounter, Value: c}, nil
 	} else {
-		return Counter{}, errors.New("missing key")
+		return Counter{}, fmt.Errorf("missing key: %s", k)
 	}
 }
 
 func (ms *MemStorage) GetGauge(k string) (Gauge, error) {
-	g, exists := ms.GaugeMap[k]
-	if exists {
+	g, ok := ms.GaugeMap[k]
+	if ok {
 		return Gauge{Name: k, Type: MetricTypeGauge, Value: g}, nil
 	} else {
-		return Gauge{}, errors.New("missing key")
+		return Gauge{}, fmt.Errorf("missing key: %s", k)
 	}
 }
 
@@ -54,4 +56,10 @@ func (ms *MemStorage) SetGauge(k string, v float64) {
 
 func (ms *MemStorage) AddCounter(k string, v int64) {
 	ms.CounterMap[k] += v
+}
+
+func (ms *MemStorage) ResetCounters() {
+	for k := range ms.CounterMap {
+		ms.CounterMap[k] = 0
+	}
 }

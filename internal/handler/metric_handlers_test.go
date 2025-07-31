@@ -211,6 +211,9 @@ func TestGetMetricHandler(t *testing.T) {
 }
 
 func TestUpdateMetricJSONHandler(t *testing.T) {
+
+	storage.Flush()
+
 	type want struct {
 		status  int
 		gauge   float64

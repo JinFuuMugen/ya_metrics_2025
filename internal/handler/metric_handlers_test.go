@@ -312,9 +312,7 @@ func TestUpdateMetricJSONHandler(t *testing.T) {
 }
 
 func TestGetMetricJSONHandler(t *testing.T) {
-
 	storage.Flush()
-
 	storage.AddCounter("valid_counter", 100)
 	storage.SetGauge("valid_gauge", 100.100)
 
@@ -332,43 +330,43 @@ func TestGetMetricJSONHandler(t *testing.T) {
 	}{
 		{
 			name:   "valid gauge",
-			method: http.MethodGet,
+			method: http.MethodPost,
 			body:   `{"id":"valid_gauge","type":"gauge"}`,
 			want:   want{status: http.StatusOK, gauge: 100.100},
 		},
 		{
 			name:   "valid counter",
-			method: http.MethodGet,
+			method: http.MethodPost,
 			body:   `{"id":"valid_counter","type":"counter"}`,
 			want:   want{status: http.StatusOK, counter: 100},
 		},
 		{
 			name:   "wrong method",
-			method: http.MethodPost,
+			method: http.MethodGet, // любой, кроме POST
 			body:   `{"id":"valid_gauge","type":"gauge"}`,
 			want:   want{status: http.StatusMethodNotAllowed},
 		},
 		{
 			name:   "unknown metric type",
-			method: http.MethodGet,
+			method: http.MethodPost,
 			body:   `{"id":"mystery","type":"temperature"}`,
 			want:   want{status: http.StatusBadRequest},
 		},
 		{
 			name:   "empty id",
-			method: http.MethodGet,
+			method: http.MethodPost,
 			body:   `{"id":"","type":"gauge"}`,
 			want:   want{status: http.StatusBadRequest},
 		},
 		{
 			name:   "not found gauge",
-			method: http.MethodGet,
+			method: http.MethodPost,
 			body:   `{"id":"missing_gauge","type":"gauge"}`,
 			want:   want{status: http.StatusNotFound},
 		},
 		{
 			name:   "bad json",
-			method: http.MethodGet,
+			method: http.MethodPost,
 			body:   `{"id":"oops",`,
 			want:   want{status: http.StatusBadRequest},
 		},
@@ -376,7 +374,6 @@ func TestGetMetricJSONHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			r := httptest.NewRequest(tt.method, "/value/", bytes.NewBufferString(tt.body))
 			w := httptest.NewRecorder()
 
@@ -390,20 +387,20 @@ func TestGetMetricJSONHandler(t *testing.T) {
 				return
 			}
 
-			var m models.Metrics
-			if err := json.Unmarshal(w.Body.Bytes(), &m); err != nil {
+			var resp models.Metrics
+			if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
 				t.Fatalf("cannot decode response: %v", err)
 			}
 
 			if tt.want.gauge != 0 {
-				if m.Value == nil || *m.Value != tt.want.gauge {
-					t.Fatalf("gauge = %v, want %v", m.Value, tt.want.gauge)
+				if resp.Value == nil || *resp.Value != tt.want.gauge {
+					t.Fatalf("gauge = %v, want %v", resp.Value, tt.want.gauge)
 				}
 			}
 
 			if tt.want.counter != 0 {
-				if m.Delta == nil || *m.Delta != tt.want.counter {
-					t.Fatalf("counter = %v, want %v", m.Delta, tt.want.counter)
+				if resp.Delta == nil || *resp.Delta != tt.want.counter {
+					t.Fatalf("counter = %v, want %v", resp.Delta, tt.want.counter)
 				}
 			}
 		})

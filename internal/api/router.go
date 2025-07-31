@@ -14,7 +14,7 @@ func InitRouter() *chi.Mux {
 	rout.Post("/update/{metric_type}/{metric_name}/{metric_value}", handler.UpdateMetricHandler)
 	rout.Post("/update", handler.UpdateMetricJSONHandler)
 	rout.Get("/value/{metric_type}/{metric_name}", handler.GetMetricHandler)
-	rout.Get("/value", handler.GetMetricJSONHandler)
+	rout.Post("/value", handler.GetMetricJSONHandler)
 	rout.Get("/", handler.InfoPageHandler)
 
 	return rout

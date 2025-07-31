@@ -48,7 +48,7 @@ func (v *values) Process(counters []storage.Counter, gauges []storage.Gauge) err
 			log.Printf("cannot marshal metric %s :%s", c.Name, err)
 		}
 
-		url := fmt.Sprintf("http://%s/update", v.addr)
+		url := fmt.Sprintf("http://%s/value", v.addr)
 
 		if err := v.sendMetric(url, bytes.NewBuffer(marshMetric)); err != nil {
 			return fmt.Errorf("cannot send counter metric: %w", err)
@@ -63,7 +63,7 @@ func (v *values) Process(counters []storage.Counter, gauges []storage.Gauge) err
 			log.Printf("cannot marshal metric %s :%s", g.Name, err)
 		}
 
-		url := fmt.Sprintf("http://%s/update", v.addr)
+		url := fmt.Sprintf("http://%s/value", v.addr)
 
 		if err := v.sendMetric(url, bytes.NewBuffer(marshMetric)); err != nil {
 			return fmt.Errorf("cannot send gauge metric: %w", err)

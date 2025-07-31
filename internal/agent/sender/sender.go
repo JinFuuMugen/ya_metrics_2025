@@ -1,9 +1,15 @@
 package sender
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 
+	"log"
+
+	models "github.com/JinFuuMugen/ya_metrics_2025/internal/model"
 	"github.com/JinFuuMugen/ya_metrics_2025/internal/storage"
 )
 
@@ -20,8 +26,8 @@ func NewSender(serverAddr string) *values {
 	return &values{serverAddr, &http.Client{}}
 }
 
-func (v *values) sendMetric(url string) error {
-	resp, err := v.client.Post(url, "text/plain", nil)
+func (v *values) sendMetric(url string, body io.Reader) error {
+	resp, err := v.client.Post(url, "application/json", body)
 	if err != nil {
 		return fmt.Errorf("cannot send metric: %w", err)
 	}
@@ -35,18 +41,31 @@ func (v *values) Process(counters []storage.Counter, gauges []storage.Gauge) err
 
 	for _, c := range counters {
 
-		url := fmt.Sprintf("http://%s/update/%s/%s/%s", v.addr, c.GetType(), c.GetName(), c.GetValueString())
+		modeledMetric := models.Metrics{ID: c.Name, MType: storage.MetricTypeCounter, Delta: &c.Value}
 
-		if err := v.sendMetric(url); err != nil {
+		marshMetric, err := json.Marshal(modeledMetric)
+		if err != nil {
+			log.Printf("cannot marshal metric %s :%s", c.Name, err)
+		}
+
+		url := fmt.Sprintf("http://%s/update", v.addr)
+
+		if err := v.sendMetric(url, bytes.NewBuffer(marshMetric)); err != nil {
 			return fmt.Errorf("cannot send counter metric: %w", err)
 		}
 	}
 
 	for _, g := range gauges {
 
-		url := fmt.Sprintf("http://%s/update/%s/%s/%s", v.addr, g.GetType(), g.GetName(), g.GetValueString())
+		modeledMetric := models.Metrics{ID: g.Name, MType: storage.MetricTypeGauge, Value: &g.Value}
+		marshMetric, err := json.Marshal(modeledMetric)
+		if err != nil {
+			log.Printf("cannot marshal metric %s :%s", g.Name, err)
+		}
 
-		if err := v.sendMetric(url); err != nil {
+		url := fmt.Sprintf("http://%s/update", v.addr)
+
+		if err := v.sendMetric(url, bytes.NewBuffer(marshMetric)); err != nil {
 			return fmt.Errorf("cannot send gauge metric: %w", err)
 		}
 	}

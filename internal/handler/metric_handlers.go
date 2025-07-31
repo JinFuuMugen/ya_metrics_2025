@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -88,4 +90,50 @@ func GetMetricHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+}
+
+func UpdateMetricJSONHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var buffer bytes.Buffer
+
+	_, err := buffer.ReadFrom(r.Body)
+	if err != nil {
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	var metric models.Metrics
+
+	if err := json.Unmarshal(buffer.Bytes(), &metric); err != nil {
+		http.Error(w, "bad request", http.StatusBadRequest)
+	}
+
+	switch metric.MType {
+
+	case storage.MetricTypeCounter:
+		if metric.ID != "" && metric.Delta != nil {
+			storage.AddCounter(metric.ID, *metric.Delta)
+		} else {
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
+
+	case storage.MetricTypeGauge:
+		if metric.ID != "" && metric.Value != nil {
+			storage.SetGauge(metric.ID, *metric.Value)
+		} else {
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
+
+	default:
+		http.Error(w, "unknown metric type", http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

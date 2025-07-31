@@ -12,6 +12,7 @@ func InitRouter() *chi.Mux {
 	rout.Use(logger.LoggerMiddleware)
 
 	rout.Post("/update/{metric_type}/{metric_name}/{metric_value}", handler.UpdateMetricHandler)
+	rout.Post("/update", handler.UpdateMetricJSONHandler)
 	rout.Get("/value/{metric_type}/{metric_name}", handler.GetMetricHandler)
 	rout.Get("/", handler.InfoPageHandler)
 

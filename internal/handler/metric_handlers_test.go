@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"bytes"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -205,6 +206,96 @@ func TestGetMetricHandler(t *testing.T) {
 				}
 			}
 
+		})
+	}
+}
+
+func TestUpdateMetricJSONHandler(t *testing.T) {
+	type want struct {
+		status  int
+		gauge   float64
+		counter int64
+	}
+
+	tests := []struct {
+		name   string
+		method string
+		body   string
+		want   want
+	}{
+		{
+			name:   "valid gauge",
+			method: http.MethodPost,
+			body:   `{"id":"GaugeMetr","type":"gauge","value":123.4}`,
+			want:   want{status: http.StatusOK, gauge: 123.4},
+		},
+		{
+			name:   "valid counter",
+			method: http.MethodPost,
+			body:   `{"id":"CounterMetr","type":"counter","delta":2}`,
+			want:   want{status: http.StatusOK, counter: 2},
+		},
+		{
+			name:   "wrong method",
+			method: http.MethodGet,
+			body:   `{"id":"GaugeMetr","type":"gauge","value":123.4}`,
+			want:   want{status: http.StatusMethodNotAllowed},
+		},
+		{
+			name:   "bad json",
+			method: http.MethodPost,
+			body:   `{"id":"GaugeMetr","type":"gauge",`,
+			want:   want{status: http.StatusBadRequest},
+		},
+		{
+			name:   "unknown metric type",
+			method: http.MethodPost,
+			body:   `{"id":"Some","type":"temperature","value":20}`,
+			want:   want{status: http.StatusBadRequest},
+		},
+		{
+			name:   "missing value for gauge",
+			method: http.MethodPost,
+			body:   `{"id":"GaugeMetr","type":"gauge"}`,
+			want:   want{status: http.StatusBadRequest},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			r := httptest.NewRequest(tt.method, "/update/", bytes.NewBufferString(tt.body))
+			w := httptest.NewRecorder()
+
+			UpdateMetricJSONHandler(w, r)
+
+			if w.Code != tt.want.status {
+				t.Fatalf("status = %d, want %d", w.Code, tt.want.status)
+			}
+
+			if tt.want.status != http.StatusOK {
+				return
+			}
+
+			if tt.want.gauge != 0 {
+				got, err := storage.GetGauge("GaugeMetr")
+				if err != nil {
+					t.Fatalf("error getting gauge value: %v", err)
+				}
+				if got.GetValue() != tt.want.gauge {
+					t.Fatalf("gauge = %v, want %v", got.GetValue(), tt.want.gauge)
+				}
+			}
+
+			if tt.want.counter != 0 {
+				got, err := storage.GetCounter("CounterMetr")
+				if err != nil {
+					t.Fatalf("error getting counter value: %v", err)
+				}
+				if got.GetValue() != tt.want.counter {
+					t.Fatalf("counter = %v, want %v", got.GetValue(), tt.want.counter)
+				}
+			}
 		})
 	}
 }

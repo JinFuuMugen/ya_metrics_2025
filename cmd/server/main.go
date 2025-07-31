@@ -10,11 +10,14 @@ import (
 
 func main() {
 
-	cfg := config.InitServerConfig()
+	cfg, err := config.InitServerConfig()
+	if err != nil {
+		panic(fmt.Errorf("cannot init server config: %w", err))
+	}
 
 	rout := api.InitRouter()
 
-	err := http.ListenAndServe(cfg.Addr, rout)
+	err = http.ListenAndServe(cfg.Addr, rout)
 	if err != nil {
 		panic(fmt.Errorf("cannot start server: %w", err))
 	}

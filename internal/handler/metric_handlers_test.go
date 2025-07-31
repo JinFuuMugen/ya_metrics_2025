@@ -107,6 +107,9 @@ func TestUpdateMetricHandler(t *testing.T) {
 }
 
 func TestGetMetricHandler(t *testing.T) {
+
+	storage.Flush()
+
 	tests := []struct {
 		name        string
 		method      string

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/JinFuuMugen/ya_metrics_2025/internal/filestorage"
 	models "github.com/JinFuuMugen/ya_metrics_2025/internal/model"
 	"github.com/JinFuuMugen/ya_metrics_2025/internal/storage"
 )
@@ -134,6 +135,10 @@ func UpdateMetricJSONHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "unknown metric type", http.StatusBadRequest)
 		return
 	}
+
+	saver, _ := filestorage.NewSaver("/Users/jinfuumugen/Downloads/test.txt") //TODO: remove
+	saver.SaveMetric(metric)
+	saver.Close()
 
 	w.WriteHeader(http.StatusOK)
 }

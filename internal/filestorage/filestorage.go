@@ -3,7 +3,9 @@ package filestorage
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"os"
 	"time"
 
@@ -156,7 +158,12 @@ func NewLoader(fname string) (*metricsLoader, error) {
 
 func (ml *metricsLoader) LoadMetrics() ([]models.Metrics, error) {
 	var metrics []models.Metrics
-	if err := ml.decoder.Decode(&metrics); err != nil {
+
+	err := ml.decoder.Decode(&metrics)
+	if err != nil {
+		if errors.Is(err, io.EOF) {
+			return []models.Metrics{}, nil
+		}
 		return nil, fmt.Errorf("cannot decode metrics from file: %w", err)
 	}
 

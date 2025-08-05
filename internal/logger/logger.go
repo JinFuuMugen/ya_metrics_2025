@@ -31,6 +31,10 @@ func Fatalf(template string, args ...interface{}) {
 	log.Fatalf(template, args)
 }
 
+func Infof(template string, args ...interface{}) {
+	log.Infof(template, args)
+}
+
 type (
 	responseData struct {
 		status int

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 
@@ -20,7 +21,7 @@ func InitServerConfig() (*ServerConfig, error) {
 
 	flagAddr := flag.String("a", "localhost:8080", "Metrics server address")
 	flagStoreInterval := flag.Int("i", 300, "Metrics store interval in seconds (0 to sync)")
-	flagFileStoragePath := flag.String("f", "/data/metrics.txt", "Metrics store filepath")
+	flagFileStoragePath := flag.String("f", "./tmp/metrics.json", "Metrics store filepath")
 	flagRestore := flag.Bool("r", false, "Flag to load previous values from file on startup")
 	flag.Parse()
 
@@ -32,6 +33,10 @@ func InitServerConfig() (*ServerConfig, error) {
 	err := env.Parse(serverConfig)
 	if err != nil {
 		return nil, fmt.Errorf("cannot parse env variables: %w", err)
+	}
+
+	if serverConfig.StoreInterval < 0 {
+		return nil, fmt.Errorf("bad store interval (<0): %w", errors.New("metrics store interval must be not less than zero"))
 	}
 
 	return serverConfig, nil

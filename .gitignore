@@ -25,3 +25,4 @@ vendor/
 .vscode
 agent
 .gitignore
+tmp/metrics.json

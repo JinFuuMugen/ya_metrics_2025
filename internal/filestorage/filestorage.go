@@ -127,17 +127,21 @@ func (ms *MetricsSaver) SaveMetrics() error {
 		metrics = append(metrics, models.Metrics{ID: g.Name, Value: &g.Value, MType: models.Gauge})
 	}
 
-	data, err := json.MarshalIndent(metrics, "", " ")
-	if err != nil {
-		return fmt.Errorf("cannot marshal metrics: %w", err)
-	}
+	if len(metrics) > 0 {
+		data, err := json.MarshalIndent(metrics, "", " ")
+		if err != nil {
+			return fmt.Errorf("cannot marshal metrics: %w", err)
+		}
 
-	_, err = ms.file.Write(data)
-	if err != nil {
-		return fmt.Errorf("cannot write metrics to file: %w", err)
-	}
+		_, err = ms.file.Write(data)
+		if err != nil {
+			return fmt.Errorf("cannot write metrics to file: %w", err)
+		}
 
-	logger.Infof("data saved: %d metrics", len(metrics))
+		logger.Infof("data saved: %d metrics", len(metrics))
+	} else {
+		logger.Infof("no data to safe%s", "")
+	}
 
 	return nil
 }

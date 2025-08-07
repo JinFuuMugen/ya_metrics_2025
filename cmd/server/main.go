@@ -21,23 +21,23 @@ func main() {
 
 	cfg, err := config.InitServerConfig()
 	if err != nil {
-		logger.Fatalf("cannot init server config: %w", err)
+		logger.Fatalf("cannot init server config: %s", err)
 	}
 
 	rout := api.InitRouter(cfg)
 
 	arbitrator, err := filestorage.InitArbitrator(cfg)
 	if err != nil {
-		logger.Fatalf("cannot init arbitrator: %w", err)
+		logger.Fatalf("cannot init arbitrator: %s", err)
 	}
 
 	err = arbitrator.StartArbitrator(context.Background())
 	if err != nil {
-		logger.Fatalf("cannot start arbitrator: %w", err)
+		logger.Fatalf("cannot start arbitrator: %s", err)
 	}
 
 	err = http.ListenAndServe(cfg.Addr, rout)
 	if err != nil {
-		logger.Fatalf("cannot start server: %w", err)
+		logger.Fatalf("cannot start server: %s", err)
 	}
 }

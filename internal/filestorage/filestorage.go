@@ -110,6 +110,10 @@ func (ms *MetricsSaver) SaveMetrics() error {
 		return fmt.Errorf("cannot truncate file: %w", err)
 	}
 
+	if _, err := ms.file.Seek(0, 0); err != nil {
+		return fmt.Errorf("cannot seek to beginning of file: %w", err)
+	}
+
 	counters := storage.GetCounters()
 	gauges := storage.GetGauges()
 

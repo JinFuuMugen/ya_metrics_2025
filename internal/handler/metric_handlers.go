@@ -14,14 +14,14 @@ import (
 
 func UpdateMetricHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		logger.Errorf("method not allowed")
+		logger.Errorf("method %s is not allowed", r.Method)
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
 	metricName := r.PathValue(`metric_name`)
 	if metricName == "" {
-		logger.Errorf("method not allowed")
+		logger.Errorf("empty metric name %s", metricName)
 		http.Error(w, "no metric name provided", http.StatusNotFound)
 		return
 	}
@@ -35,7 +35,7 @@ func UpdateMetricHandler(w http.ResponseWriter, r *http.Request) {
 
 		floatValue, err := strconv.ParseFloat(metricValue, 64)
 		if err != nil {
-			logger.Errorf("cannot parse %s to float: %w", metricValue, err)
+			logger.Errorf("cannot parse %s to float: %s", metricValue, err)
 			http.Error(w, fmt.Sprintf("invalid value: %s of type %s", metricValue, metricType), http.StatusBadRequest)
 			return
 		}
@@ -46,7 +46,7 @@ func UpdateMetricHandler(w http.ResponseWriter, r *http.Request) {
 
 		intValue, err := strconv.Atoi(metricValue)
 		if err != nil {
-			logger.Errorf("cannot parse %s to int: %w", metricValue, err)
+			logger.Errorf("cannot parse %s to int: %s", metricValue, err)
 			http.Error(w, fmt.Sprintf("invalid value: %s of type %s", metricValue, metricType), http.StatusBadRequest)
 			return
 		}
@@ -65,7 +65,7 @@ func UpdateMetricHandler(w http.ResponseWriter, r *http.Request) {
 func GetMetricHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-		logger.Errorf("method not allowed")
+		logger.Errorf("method %s is not allowed", r.Method)
 	}
 
 	metricType := r.PathValue(`metric_type`)
@@ -76,7 +76,7 @@ func GetMetricHandler(w http.ResponseWriter, r *http.Request) {
 		counter, err := storage.GetCounter(metricName)
 		if err != nil {
 			http.Error(w, "metric not found", http.StatusNotFound)
-			logger.Errorf("metric not found: %w", err)
+			logger.Errorf("metric not found: %s", err)
 			return
 		}
 
@@ -87,7 +87,7 @@ func GetMetricHandler(w http.ResponseWriter, r *http.Request) {
 		gauge, err := storage.GetGauge(metricName)
 		if err != nil {
 			http.Error(w, "metric not found", http.StatusNotFound)
-			logger.Errorf("metric not found: %w", err)
+			logger.Errorf("metric not found: %s", err)
 			return
 		}
 
@@ -105,7 +105,7 @@ func GetMetricHandler(w http.ResponseWriter, r *http.Request) {
 func UpdateMetricJSONHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-		logger.Errorf("method not allowed")
+		logger.Errorf("method %s is not allowed", r.Method)
 		return
 	}
 
@@ -114,7 +114,7 @@ func UpdateMetricJSONHandler(w http.ResponseWriter, r *http.Request) {
 	_, err := buffer.ReadFrom(r.Body)
 	if err != nil {
 		http.Error(w, "internal server error", http.StatusInternalServerError)
-		logger.Errorf("cannot read body: %w", err)
+		logger.Errorf("cannot read body: %s", err)
 		return
 	}
 
@@ -122,7 +122,7 @@ func UpdateMetricJSONHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.Unmarshal(buffer.Bytes(), &metric); err != nil {
 		http.Error(w, "bad request", http.StatusBadRequest)
-		logger.Errorf("cannot unmarshal body: %w", err)
+		logger.Errorf("cannot unmarshal body: %s", err)
 	}
 
 	switch metric.MType {
@@ -132,7 +132,7 @@ func UpdateMetricJSONHandler(w http.ResponseWriter, r *http.Request) {
 			storage.AddCounter(metric.ID, *metric.Delta)
 		} else {
 			http.Error(w, "bad request", http.StatusBadRequest)
-			logger.Errorf("missing crucial fields in request")
+			logger.Errorf("missing crucial fields in request %s", buffer.String())
 			return
 		}
 
@@ -141,7 +141,7 @@ func UpdateMetricJSONHandler(w http.ResponseWriter, r *http.Request) {
 			storage.SetGauge(metric.ID, *metric.Value)
 		} else {
 			http.Error(w, "bad request", http.StatusBadRequest)
-			logger.Errorf("missing crucial fields in request")
+			logger.Errorf("missing crucial fields in request %s", buffer.String())
 			return
 		}
 
@@ -157,7 +157,7 @@ func UpdateMetricJSONHandler(w http.ResponseWriter, r *http.Request) {
 func GetMetricJSONHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-		logger.Errorf("method not allowed")
+		logger.Errorf("method %s is not allowed", r.Method)
 		return
 	}
 
@@ -166,7 +166,7 @@ func GetMetricJSONHandler(w http.ResponseWriter, r *http.Request) {
 	_, err := buffer.ReadFrom(r.Body)
 	if err != nil {
 		http.Error(w, "internal server error", http.StatusInternalServerError)
-		logger.Errorf("cannot read body: %w", err)
+		logger.Errorf("cannot read body: %s", err)
 		return
 	}
 
@@ -174,7 +174,7 @@ func GetMetricJSONHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.Unmarshal(buffer.Bytes(), &metric); err != nil {
 		http.Error(w, "bad request", http.StatusBadRequest)
-		logger.Errorf("cannot unmarshal body: %w", err)
+		logger.Errorf("cannot unmarshal body: %s", err)
 	}
 
 	switch metric.MType {
@@ -183,7 +183,7 @@ func GetMetricJSONHandler(w http.ResponseWriter, r *http.Request) {
 			c, err := storage.GetCounter(metric.ID)
 			if err != nil {
 				http.Error(w, "metric not found", http.StatusNotFound)
-				logger.Errorf("metric not found: %w", err)
+				logger.Errorf("metric not found: %s", err)
 				return
 			}
 
@@ -191,7 +191,7 @@ func GetMetricJSONHandler(w http.ResponseWriter, r *http.Request) {
 
 		} else {
 			http.Error(w, "empty metric name", http.StatusBadRequest)
-			logger.Errorf("empty metric name")
+			logger.Errorf("empty metric name %s", metric.ID)
 			return
 		}
 
@@ -200,7 +200,7 @@ func GetMetricJSONHandler(w http.ResponseWriter, r *http.Request) {
 			g, err := storage.GetGauge(metric.ID)
 			if err != nil {
 				http.Error(w, "metric not found", http.StatusNotFound)
-				logger.Errorf("metric not found: %w", err)
+				logger.Errorf("metric not found: %s", err)
 				return
 			}
 
@@ -208,7 +208,7 @@ func GetMetricJSONHandler(w http.ResponseWriter, r *http.Request) {
 
 		} else {
 			http.Error(w, "empty metric name", http.StatusBadRequest)
-			logger.Errorf("empty metric name")
+			logger.Errorf("empty metric name %s", metric.ID)
 			return
 		}
 
@@ -221,7 +221,7 @@ func GetMetricJSONHandler(w http.ResponseWriter, r *http.Request) {
 	marshMetric, err := json.Marshal(metric)
 	if err != nil {
 		http.Error(w, "internal server error", http.StatusInternalServerError)
-		logger.Errorf("cannot marshal metric: %w", err)
+		logger.Errorf("cannot marshal metric: %s", err)
 		return
 	}
 

@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/JinFuuMugen/ya_metrics_2025/internal/logger"
 	models "github.com/JinFuuMugen/ya_metrics_2025/internal/model"
 	"github.com/JinFuuMugen/ya_metrics_2025/internal/storage"
 )
@@ -16,6 +17,8 @@ import (
 func TestUpdateMetricHandler(t *testing.T) {
 
 	storage.Flush()
+
+	logger.InitLogger()
 
 	tests := []struct {
 		name        string
@@ -114,6 +117,8 @@ func TestUpdateMetricHandler(t *testing.T) {
 func TestGetMetricHandler(t *testing.T) {
 
 	storage.Flush()
+
+	logger.InitLogger()
 
 	tests := []struct {
 		name        string
@@ -221,6 +226,7 @@ func TestGetMetricHandler(t *testing.T) {
 func TestUpdateMetricJSONHandler(t *testing.T) {
 
 	storage.Flush()
+	logger.InitLogger()
 
 	type want struct {
 		status  int
@@ -312,7 +318,10 @@ func TestUpdateMetricJSONHandler(t *testing.T) {
 }
 
 func TestGetMetricJSONHandler(t *testing.T) {
+
+	logger.InitLogger()
 	storage.Flush()
+
 	storage.AddCounter("valid_counter", 100)
 	storage.SetGauge("valid_gauge", 100.100)
 

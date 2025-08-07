@@ -17,7 +17,7 @@ func SyncSaveMiddleware(cfg *config.ServerConfig) func(http.Handler) http.Handle
 				syncSaver, err := filestorage.NewSaver(cfg.FileStoragePath)
 				if err != nil {
 					http.Error(w, "internal server error", http.StatusInternalServerError)
-					logger.Errorf("cannot create sync saver: %w", err)
+					logger.Fatalf("cannot create sync saver: %w", err)
 				}
 
 				syncSaver.SaveMetrics()

@@ -23,8 +23,12 @@ func InitRouter(cfg *config.ServerConfig) *chi.Mux {
 		r.Post("/", handler.UpdateMetricJSONHandler)
 	})
 
-	rout.Get("/value/{metric_type}/{metric_name}", handler.GetMetricHandler)
-	rout.Post("/value", handler.GetMetricJSONHandler)
+	rout.Route("/value", func(r chi.Router) {
+
+		r.Get("/{metric_type}/{metric_name}", handler.GetMetricHandler)
+		r.Post("/", handler.GetMetricJSONHandler)
+	})
+
 	rout.Get("/", handler.InfoPageHandler)
 
 	return rout

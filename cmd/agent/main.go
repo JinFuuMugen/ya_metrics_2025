@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"time"
 
@@ -12,7 +13,10 @@ import (
 
 func main() {
 
-	cfg := config.InitAgentConfig()
+	cfg, err := config.InitAgentConfig()
+	if err != nil {
+		panic(fmt.Errorf("cannot init agent config: %w", err))
+	}
 
 	pollTicker := time.NewTicker(time.Duration(cfg.PollInterval) * time.Second)
 	reportTicker := time.NewTicker(time.Duration(cfg.ReportInerval) * time.Second)

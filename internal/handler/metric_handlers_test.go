@@ -1,16 +1,25 @@
 package handler
 
 import (
+	"bytes"
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
 	"testing"
 
+	"github.com/JinFuuMugen/ya_metrics_2025/internal/logger"
+	models "github.com/JinFuuMugen/ya_metrics_2025/internal/model"
 	"github.com/JinFuuMugen/ya_metrics_2025/internal/storage"
 )
 
 func TestUpdateMetricHandler(t *testing.T) {
+
+	storage.Flush()
+
+	logger.InitLogger()
+
 	tests := []struct {
 		name        string
 		method      string
@@ -106,6 +115,11 @@ func TestUpdateMetricHandler(t *testing.T) {
 }
 
 func TestGetMetricHandler(t *testing.T) {
+
+	storage.Flush()
+
+	logger.InitLogger()
+
 	tests := []struct {
 		name        string
 		method      string
@@ -205,6 +219,199 @@ func TestGetMetricHandler(t *testing.T) {
 				}
 			}
 
+		})
+	}
+}
+
+func TestUpdateMetricJSONHandler(t *testing.T) {
+
+	storage.Flush()
+	logger.InitLogger()
+
+	type want struct {
+		status  int
+		gauge   float64
+		counter int64
+	}
+
+	tests := []struct {
+		name   string
+		method string
+		body   string
+		want   want
+	}{
+		{
+			name:   "valid gauge",
+			method: http.MethodPost,
+			body:   `{"id":"GaugeMetr","type":"gauge","value":123.4}`,
+			want:   want{status: http.StatusOK, gauge: 123.4},
+		},
+		{
+			name:   "valid counter",
+			method: http.MethodPost,
+			body:   `{"id":"CounterMetr","type":"counter","delta":2}`,
+			want:   want{status: http.StatusOK, counter: 2},
+		},
+		{
+			name:   "wrong method",
+			method: http.MethodGet,
+			body:   `{"id":"GaugeMetr","type":"gauge","value":123.4}`,
+			want:   want{status: http.StatusMethodNotAllowed},
+		},
+		{
+			name:   "bad json",
+			method: http.MethodPost,
+			body:   `{"id":"GaugeMetr","type":"gauge",`,
+			want:   want{status: http.StatusBadRequest},
+		},
+		{
+			name:   "unknown metric type",
+			method: http.MethodPost,
+			body:   `{"id":"Some","type":"temperature","value":20}`,
+			want:   want{status: http.StatusBadRequest},
+		},
+		{
+			name:   "missing value for gauge",
+			method: http.MethodPost,
+			body:   `{"id":"GaugeMetr","type":"gauge"}`,
+			want:   want{status: http.StatusBadRequest},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			r := httptest.NewRequest(tt.method, "/update/", bytes.NewBufferString(tt.body))
+			w := httptest.NewRecorder()
+
+			UpdateMetricJSONHandler(w, r)
+
+			if w.Code != tt.want.status {
+				t.Fatalf("status = %d, want %d", w.Code, tt.want.status)
+			}
+
+			if tt.want.status != http.StatusOK {
+				return
+			}
+
+			if tt.want.gauge != 0 {
+				got, err := storage.GetGauge("GaugeMetr")
+				if err != nil {
+					t.Fatalf("error getting gauge value: %v", err)
+				}
+				if got.GetValue() != tt.want.gauge {
+					t.Fatalf("gauge = %v, want %v", got.GetValue(), tt.want.gauge)
+				}
+			}
+
+			if tt.want.counter != 0 {
+				got, err := storage.GetCounter("CounterMetr")
+				if err != nil {
+					t.Fatalf("error getting counter value: %v", err)
+				}
+				if got.GetValue() != tt.want.counter {
+					t.Fatalf("counter = %v, want %v", got.GetValue(), tt.want.counter)
+				}
+			}
+		})
+	}
+}
+
+func TestGetMetricJSONHandler(t *testing.T) {
+
+	logger.InitLogger()
+	storage.Flush()
+
+	storage.AddCounter("valid_counter", 100)
+	storage.SetGauge("valid_gauge", 100.100)
+
+	type want struct {
+		status  int
+		gauge   float64
+		counter int64
+	}
+
+	tests := []struct {
+		name   string
+		method string
+		body   string
+		want   want
+	}{
+		{
+			name:   "valid gauge",
+			method: http.MethodPost,
+			body:   `{"id":"valid_gauge","type":"gauge"}`,
+			want:   want{status: http.StatusOK, gauge: 100.100},
+		},
+		{
+			name:   "valid counter",
+			method: http.MethodPost,
+			body:   `{"id":"valid_counter","type":"counter"}`,
+			want:   want{status: http.StatusOK, counter: 100},
+		},
+		{
+			name:   "wrong method",
+			method: http.MethodGet, // любой, кроме POST
+			body:   `{"id":"valid_gauge","type":"gauge"}`,
+			want:   want{status: http.StatusMethodNotAllowed},
+		},
+		{
+			name:   "unknown metric type",
+			method: http.MethodPost,
+			body:   `{"id":"mystery","type":"temperature"}`,
+			want:   want{status: http.StatusBadRequest},
+		},
+		{
+			name:   "empty id",
+			method: http.MethodPost,
+			body:   `{"id":"","type":"gauge"}`,
+			want:   want{status: http.StatusBadRequest},
+		},
+		{
+			name:   "not found gauge",
+			method: http.MethodPost,
+			body:   `{"id":"missing_gauge","type":"gauge"}`,
+			want:   want{status: http.StatusNotFound},
+		},
+		{
+			name:   "bad json",
+			method: http.MethodPost,
+			body:   `{"id":"oops",`,
+			want:   want{status: http.StatusBadRequest},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := httptest.NewRequest(tt.method, "/value/", bytes.NewBufferString(tt.body))
+			w := httptest.NewRecorder()
+
+			GetMetricJSONHandler(w, r)
+
+			if w.Code != tt.want.status {
+				t.Fatalf("status = %d, want %d", w.Code, tt.want.status)
+			}
+
+			if tt.want.status != http.StatusOK {
+				return
+			}
+
+			var resp models.Metrics
+			if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+				t.Fatalf("cannot decode response: %v", err)
+			}
+
+			if tt.want.gauge != 0 {
+				if resp.Value == nil || *resp.Value != tt.want.gauge {
+					t.Fatalf("gauge = %v, want %v", resp.Value, tt.want.gauge)
+				}
+			}
+
+			if tt.want.counter != 0 {
+				if resp.Delta == nil || *resp.Delta != tt.want.counter {
+					t.Fatalf("counter = %v, want %v", resp.Delta, tt.want.counter)
+				}
+			}
 		})
 	}
 }

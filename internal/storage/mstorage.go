@@ -98,3 +98,8 @@ func GetCounters() []Counter {
 func GetGauges() []Gauge {
 	return defaultStorage.GetGauges()
 }
+
+func Flush() {
+	defaultStorage.CounterMap = make(map[string]int64)
+	defaultStorage.GaugeMap = make(map[string]float64)
+}

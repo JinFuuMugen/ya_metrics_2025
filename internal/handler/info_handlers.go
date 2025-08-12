@@ -2,9 +2,9 @@ package handler
 
 import (
 	"html/template"
-	"log"
 	"net/http"
 
+	"github.com/JinFuuMugen/ya_metrics_2025/internal/logger"
 	"github.com/JinFuuMugen/ya_metrics_2025/internal/storage"
 )
 
@@ -53,12 +53,15 @@ type PageData struct {
 var tmpl = template.Must(template.New("page").Parse(pageTmpl))
 
 func InfoPageHandler(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Add("Content-Type", "text/html")
+
 	counters := storage.GetCounters()
 	gauges := storage.GetGauges()
 
 	data := PageData{Counters: counters, Gauges: gauges}
 	if err := tmpl.Execute(w, data); err != nil {
-		log.Printf("unable to parse info page: %s", err)
+		logger.Errorf("unable to parse info page: %w", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}

@@ -30,6 +30,7 @@ func InitRouter(cfg *config.ServerConfig) *chi.Mux {
 	})
 
 	rout.Get("/", handler.InfoPageHandler)
+	rout.Get("/ping", handler.PingDBHandler)
 
 	return rout
 }

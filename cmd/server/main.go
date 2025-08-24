@@ -9,6 +9,7 @@ import (
 	"github.com/JinFuuMugen/ya_metrics_2025/internal/config"
 	"github.com/JinFuuMugen/ya_metrics_2025/internal/filestorage"
 	"github.com/JinFuuMugen/ya_metrics_2025/internal/logger"
+	"github.com/JinFuuMugen/ya_metrics_2025/internal/repository"
 )
 
 func main() {
@@ -22,6 +23,11 @@ func main() {
 	cfg, err := config.InitServerConfig()
 	if err != nil {
 		logger.Fatalf("cannot init server config: %s", err)
+	}
+
+	err = repository.InitDB(cfg)
+	if err != nil {
+		logger.Fatalf("cannot init DB: %w", err)
 	}
 
 	rout := api.InitRouter(cfg)

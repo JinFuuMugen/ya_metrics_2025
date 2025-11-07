@@ -9,10 +9,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/JinFuuMugen/ya_metrics_2025.git/internal/config"
-	"github.com/JinFuuMugen/ya_metrics_2025.git/internal/logger"
-	"github.com/JinFuuMugen/ya_metrics_2025.git/internal/models"
-	"github.com/JinFuuMugen/ya_metrics_2025.git/internal/storage"
+	"github.com/JinFuuMugen/ya_metrics_2025/internal/config"
+	"github.com/JinFuuMugen/ya_metrics_2025/internal/logger"
+	"github.com/JinFuuMugen/ya_metrics_2025/internal/models"
+	"github.com/JinFuuMugen/ya_metrics_2025/internal/storage"
 )
 
 func saveMetrics(filepath string, counters []storage.Counter, gauges []storage.Gauge) error {

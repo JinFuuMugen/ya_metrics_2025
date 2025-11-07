@@ -4,11 +4,11 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/JinFuuMugen/ya_metrics_2025.git/internal/compress"
-	"github.com/JinFuuMugen/ya_metrics_2025.git/internal/config"
-	"github.com/JinFuuMugen/ya_metrics_2025.git/internal/fileio"
-	"github.com/JinFuuMugen/ya_metrics_2025.git/internal/handlers"
-	"github.com/JinFuuMugen/ya_metrics_2025.git/internal/logger"
+	"github.com/JinFuuMugen/ya_metrics_2025/internal/compress"
+	"github.com/JinFuuMugen/ya_metrics_2025/internal/config"
+	"github.com/JinFuuMugen/ya_metrics_2025/internal/fileio"
+	"github.com/JinFuuMugen/ya_metrics_2025/internal/handlers"
+	"github.com/JinFuuMugen/ya_metrics_2025/internal/logger"
 	"github.com/go-chi/chi/v5"
 )
 

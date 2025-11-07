@@ -5,8 +5,8 @@ import (
 	"math/rand"
 	"runtime"
 
-	"github.com/JinFuuMugen/ya_metrics_2025.git/internal/sender"
-	"github.com/JinFuuMugen/ya_metrics_2025.git/internal/storage"
+	"github.com/JinFuuMugen/ya_metrics_2025/internal/sender"
+	"github.com/JinFuuMugen/ya_metrics_2025/internal/storage"
 )
 
 type monitor struct {

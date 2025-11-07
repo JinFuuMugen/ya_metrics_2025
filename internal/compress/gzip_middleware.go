@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/JinFuuMugen/ya_metrics_2025.git/internal/logger"
+	"github.com/JinFuuMugen/ya_metrics_2025/internal/logger"
 )
 
 func GzipMiddleware(next http.Handler) http.Handler {

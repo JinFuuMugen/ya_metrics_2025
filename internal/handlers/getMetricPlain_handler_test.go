@@ -5,8 +5,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/JinFuuMugen/ya_metrics_2025.git/internal/logger"
-	"github.com/JinFuuMugen/ya_metrics_2025.git/internal/storage"
+	"github.com/JinFuuMugen/ya_metrics_2025/internal/logger"
+	"github.com/JinFuuMugen/ya_metrics_2025/internal/storage"
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 )

@@ -3,11 +3,11 @@ package main
 import (
 	"log"
 
-	"github.com/JinFuuMugen/ya_metrics_2025.git/internal/config"
-	"github.com/JinFuuMugen/ya_metrics_2025.git/internal/logger"
-	"github.com/JinFuuMugen/ya_metrics_2025.git/internal/monitors"
-	"github.com/JinFuuMugen/ya_metrics_2025.git/internal/sender"
-	"github.com/JinFuuMugen/ya_metrics_2025.git/internal/storage"
+	"github.com/JinFuuMugen/ya_metrics_2025/internal/config"
+	"github.com/JinFuuMugen/ya_metrics_2025/internal/logger"
+	"github.com/JinFuuMugen/ya_metrics_2025/internal/monitors"
+	"github.com/JinFuuMugen/ya_metrics_2025/internal/sender"
+	"github.com/JinFuuMugen/ya_metrics_2025/internal/storage"
 )
 
 func main() {

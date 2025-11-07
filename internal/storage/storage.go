@@ -15,7 +15,6 @@ type (
 		GetName() string
 		GetValueString() string
 
-		//TODO FIXME
 		GetValue() interface{}
 	}
 

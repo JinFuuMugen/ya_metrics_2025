@@ -10,9 +10,10 @@ import (
 
 type ServerConfig struct {
 	Addr            string `env:"ADDRESS"`
-	StoreInterval   int    `env:"STORE_INTERVAL"`
+	DatabaseDSN     string `env:"DATABASE_DSN"`
 	FileStoragePath string `env:"FILE_STORAGE_PATH"`
 	Restore         bool   `env:"RESTORE"`
+	StoreInterval   int    `env:"STORE_INTERVAL"`
 }
 
 func InitServerConfig() (*ServerConfig, error) {
@@ -20,15 +21,17 @@ func InitServerConfig() (*ServerConfig, error) {
 	serverConfig := new(ServerConfig)
 
 	flagAddr := flag.String("a", "localhost:8080", "Metrics server address")
-	flagStoreInterval := flag.Int("i", 300, "Metrics store interval in seconds (0 to sync)")
+	flagDB := flag.String("d", "", "Database DSN")
 	flagFileStoragePath := flag.String("f", "./tmp/metrics.json", "Metrics store filepath")
 	flagRestore := flag.Bool("r", false, "Flag to load previous values from file on startup")
+	flagStoreInterval := flag.Int("i", 300, "Metrics store interval in seconds (0 to sync)")
 	flag.Parse()
 
 	serverConfig.Addr = *flagAddr
-	serverConfig.StoreInterval = *flagStoreInterval
+	serverConfig.DatabaseDSN = *flagDB
 	serverConfig.FileStoragePath = *flagFileStoragePath
 	serverConfig.Restore = *flagRestore
+	serverConfig.StoreInterval = *flagStoreInterval
 
 	err := env.Parse(serverConfig)
 	if err != nil {

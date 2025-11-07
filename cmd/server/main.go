@@ -1,49 +1,45 @@
 package main
 
 import (
-	"context"
-	defaultLogger "log"
+	"log"
 	"net/http"
 
-	"github.com/JinFuuMugen/ya_metrics_2025/internal/api"
+	"github.com/JinFuuMugen/ya_metrics_2025/internal/compress"
 	"github.com/JinFuuMugen/ya_metrics_2025/internal/config"
-	"github.com/JinFuuMugen/ya_metrics_2025/internal/filestorage"
+	"github.com/JinFuuMugen/ya_metrics_2025/internal/fileio"
+	"github.com/JinFuuMugen/ya_metrics_2025/internal/handlers"
 	"github.com/JinFuuMugen/ya_metrics_2025/internal/logger"
-	"github.com/JinFuuMugen/ya_metrics_2025/internal/repository"
+	"github.com/go-chi/chi/v5"
 )
 
 func main() {
-
-	err := logger.InitLogger()
+	cfg, err := config.LoadServerConfig()
 	if err != nil {
-		defaultLogger.Fatalf("cannot init custom logger: %s", err)
-	}
-	defer logger.Sync()
-
-	cfg, err := config.InitServerConfig()
-	if err != nil {
-		logger.Fatalf("cannot init server config: %s", err)
+		log.Fatalf("cannot create config: %s", err)
 	}
 
-	err = repository.InitDB(cfg)
-	if err != nil {
-		logger.Fatalf("cannot init DB: %w", err)
+	if err := logger.Init(); err != nil {
+		log.Fatalf("cannot create logger: %s", err)
 	}
 
-	rout := api.InitRouter(cfg)
-
-	arbitrator, err := filestorage.InitArbitrator(cfg)
-	if err != nil {
-		logger.Fatalf("cannot init arbitrator: %s", err)
+	if err := fileio.Run(cfg); err != nil {
+		logger.Fatalf("cannot load preload metrics: %s", err)
 	}
 
-	err = arbitrator.StartArbitrator(context.Background())
-	if err != nil {
-		logger.Fatalf("cannot start arbitrator: %s", err)
-	}
+	rout := chi.NewRouter()
 
-	err = http.ListenAndServe(cfg.Addr, rout)
-	if err != nil {
+	rout.Get("/", handlers.MainHandler)
+
+	rout.Route("/update", func(r chi.Router) {
+		r.Use(fileio.GetDumperMiddleware(cfg))
+		r.Post("/", handlers.UpdateMetricsHandler)
+		r.Post("/{metric_type}/{metric_name}/{metric_value}", handlers.UpdateMetricsPlainHandler)
+	})
+
+	rout.Post("/value/", handlers.GetMetricHandler)
+	rout.Get("/value/{metric_type}/{metric_name}", handlers.GetMetricPlainHandler)
+
+	if err = http.ListenAndServe(cfg.Addr, compress.GzipMiddleware(rout)); err != nil {
 		logger.Fatalf("cannot start server: %s", err)
 	}
 }
